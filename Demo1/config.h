@@ -4,7 +4,7 @@
 #define DEVICE_ID "Demo1"
 #define my_SSID "<Tu_Red_WiFi>"
 #define my_PWD  "<ElPassword>"
-#define DeviceConnStr "<tuDispositivo>"
+#define DeviceConnStr "<AzureConnectionStringDeTuDispositivo>"
 
 
 // Pin layout configuration
