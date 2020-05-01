@@ -1,2 +1,2 @@
 # Sessions
-Charla "Introduccion a IoT Hub" - Espanol
+- "Introduccion a IoT Hub" - Espanol
