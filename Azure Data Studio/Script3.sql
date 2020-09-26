@@ -2,7 +2,7 @@
 
 /*
 	Execute the following query and select the chart option,
-	then select the line chart type
+	then select the Bar chart type, with Vertical data direction
 */
 
 SELECT 
