@@ -5,7 +5,8 @@ Compatibility level: be aware of deprecated features
 More info at:
 https://docs.microsoft.com/en-us/sql/relational-databases/performance-monitor/sql-server-deprecated-features-object?view=sql-server-2017
 **********************************************************************************************************/
--- SQL 2019 will not return results: https://docs.microsoft.com/en-us/sql/database-engine/deprecated-database-engine-features-in-sql-server-version-15?view=sql-server-ver15
+-- SQL 2019 will not return results: 
+https://docs.microsoft.com/en-us/sql/database-engine/deprecated-database-engine-features-in-sql-server-version-15?view=sql-server-ver15
 
 USE master;
 GO
@@ -209,7 +210,8 @@ SELECT ProductID
 FROM VI_DEMO_4
 WHERE ProductID = 733;
 
--- Why the plan does not use a key lookup operation, even when we don't add included columns?
+-- Why the plan does not use a key lookup operation, 
+-- even when we don't add included columns?
 
 
 /******************************************* DEMO #6 *****************************************************
@@ -231,13 +233,13 @@ GO
 
 
 -- We create an index on unit price, include OrderDetailID field
-CREATE NONCLUSTERED INDEX [IX_UnitPrice] ON [Sales].[SalesOrderDetail] (UnitPrice) 
+CREATE NONCLUSTERED INDEX [IX_UnitPrice] 
+ON [Sales].[SalesOrderDetail] (UnitPrice) 
 INCLUDE (SalesOrderDetailID);
 
 -- We filter orderDetail table by one unit price, using the same column datatype for the variable
-DECLARE @demo_var MONEY
 
--- Assigning value to the parameter
+DECLARE @demo_var MONEY
 SET @demo_var = 3578.27;
 
 -- filtering with the variable we declared earlier
@@ -246,11 +248,10 @@ SELECT SalesOrderID
 FROM Sales.SalesOrderDetail
 WHERE UnitPrice = @demo_var;
 
--- if we do the same query againt, but changing the parameter datatype to variant, we will see a performance decrease
+-- if we do the same query againt, but changing the parameter datatype to variant, 
+-- we will see a performance decrease
+
 DECLARE @demo_var2 sql_variant
-
-
--- Assigning value to the parameter
 SET @demo_var2 = 3578.27;
 
 -- filtering with the variable we declared earlier
@@ -267,63 +268,69 @@ WHERE UnitPrice = @demo_var2;
 Parameter sniffing
 
 **********************************************************************************************************/
-/*
-
-ALTER DATABASE SCOPED CONFIGURATION SET PARAMETER_SNIFFING = ON; -- Default is ON
-GO
-
-*/
 
 USE TestDB1;
 GO
 
--- Check info on the table and the high density variation over CharData field 
--- will copy query in Plan explorer to see histogram
+-- will enable parameter sniffing property (since SQL 2016)
+ALTER DATABASE SCOPED CONFIGURATION SET PARAMETER_SNIFFING = ON; -- Default is ON
+GO
+-- Clean cache and release pages in memory *** DON'T DO IT ON PROD!!! ***
+DBCC FREEPROCCACHE;
+DBCC DROPCLEANBUFFERS;
 
-SELECT COUNT(id), CharData
+-- Check info on the table and the high density variation over CharData field 
+
+SELECT FORMAT(COUNT(id),'N0') as nRows, CharData
 FROM TestParameterSniffing
 GROUP BY CharData;
 
 -- First Execution over millions of records
-SELECT COUNT(id)
+SELECT FORMAT(COUNT(id),'N0') as nRows
 FROM TestParameterSniffing
 WHERE CharData =N'XXXXXXXXX';
 
 -- Second Execution, even when we only have one row, query is optimized for million of rows
-SELECT COUNT(id)
+SELECT FORMAT(COUNT(id),'N0') as nRows
 FROM TestParameterSniffing
 WHERE CharData =N'a';
 
 -- Suggested Solution 1: using a query hint can improve execution plan. RECOMPILE
--- NOTE: this could not work for you. with millions of executions you can experience degraded performance
-SELECT COUNT(id)
+-- NOTE: this could not work for you. 
+-- with millions of executions you can experience degraded performance
+
+SELECT FORMAT(COUNT(id),'N0') as nRows
 FROM TestParameterSniffing
 WHERE CharData =N'a'
 OPTION(RECOMPILE);
 
 
 -- Suggested Solution 2: using a query hint can improve execution plan. OPTIMIZE FOR UNKNOWN
--- NOTE: you can use this method just for specific parameters, plan could not be optimal for all cases
-SELECT COUNT(id)
+-- NOTE: you can use this method just for specific parameters, 
+-- plan could not be optimal for all cases
+SELECT FORMAT(COUNT(id),'N0') as nRows
 FROM TestParameterSniffing
 WHERE CharData =N'a'
 OPTION(OPTIMIZE FOR UNKNOWN);
+-- ^ Specifies that the Query Optimizer uses statistical data instead of the initial value
 
-
---Suggested Solution 3: Enable database scoped configuration (since SQL 2016)
+--Suggested Solution 3: disable database scoped configuration (since SQL 2016)
 --Note that this is an estimate and could not provide accurate plans as with recompile
 
 ALTER DATABASE SCOPED CONFIGURATION SET PARAMETER_SNIFFING = OFF; -- Default is ON
 GO
 
-SELECT COUNT(id)
+DBCC FREEPROCCACHE;
+DBCC DROPCLEANBUFFERS;
+
+SELECT FORMAT(COUNT(id),'N0') as nRows
 FROM TestParameterSniffing
 WHERE CharData =N'a';
 
 -- Why estimated rows are different now?
 -- HINT: see the new execution plan for first query:
 
-SELECT COUNT(id)
+SELECT FORMAT(COUNT(id),'N0') as nRows
 FROM TestParameterSniffing
 WHERE CharData =N'XXXXXXXXX';
 
@@ -347,7 +354,8 @@ More info at:
 https://www.mssqltips.com/sqlservertip/5793/sql-server-2019-memory-grant-feedback-example-and-data-collection/
 **********************************************************************************************************/
 
-ALTER DATABASE [WideWorldImporters] SET COMPATIBILITY_LEVEL = 140 --SQL 2017 compatibility level
+ALTER DATABASE [WideWorldImporters] 
+SET COMPATIBILITY_LEVEL = 140 --SQL 2017 compatibility level
 GO
 
 USE WideWorldImporters;
@@ -387,7 +395,8 @@ SELECT LogonName, UserPreferences, PhoneNumber
 FROM [Application].[People];
 
 -- Since SQL 2019, you can enable memory grant feedback at database level
-ALTER DATABASE [WideWorldImporters] SET COMPATIBILITY_LEVEL = 150 --SQL 2019 compatibility level
+ALTER DATABASE [WideWorldImporters] 
+SET COMPATIBILITY_LEVEL = 150 --SQL 2019 compatibility level
 GO
 
 -- we execute our query again with the new compatibility level, 
@@ -496,13 +505,16 @@ SELECT qt.TEXT AS QueryText
 FROM sys.dm_exec_requests QR
 CROSS APPLY sys.dm_exec_sql_text(sql_handle) QT;
 
+-- Find memory grants by query
+SELECT * 
+FROM sys.dm_exec_query_memory_grants;
+
+
 -- Find locks and waiting task by session
 SELECT *
 FROM sys.dm_os_waiting_tasks;
 
--- Find memory grants by query
-SELECT * 
-FROM sys.dm_exec_query_memory_grants;
+
 
 
 /*
@@ -519,7 +531,9 @@ How to use it? http://whoisactive.com/docs/
 sp_whoisactive;
 
 
-/* DUMB QUERY ON PURPOSE*/
+/* DUMB QUERY ON PURPOSE
+DON'T RUN IT ON PROD! IT DOES NOTHING!
+*/
 USE WideWorldImporters;
 GO
 
